@@ -19,3 +19,16 @@
 
 # Go workspace file
 go.work
+
+#idea files
+.idea/*
+
+#vscode file
+.vscode/*
+
+#runner
+examples/runner/runner
+
+#builder
+examples/builder/builder
+examples/builder/target
