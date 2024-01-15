@@ -174,6 +174,8 @@ func BuildGoFiles(config *BuildConfig) (*Package, error) {
 
 	absPath := config.BuildPaths[0]
 	workDir := filepath.Dir(absPath)
+	config.WorkDir = workDir
+	config.KeepWorkDir = true
 
 	pkg, err := getPkg(config.GoBinary, absPath, workDir)
 	if err != nil {

@@ -57,7 +57,17 @@ func main() {
 }
 
 func build(config *goloaderbuilder.BuildConfig, exeFile string) error {
-	pkg, err := goloaderbuilder.BuildGoFiles(config)
+	if len(config.BuildPaths) == 0 {
+		return fmt.Errorf("empty buildPath!\n")
+	}
+	var pkg *goloaderbuilder.Package
+	var err error
+	if strings.HasSuffix(config.BuildPaths[0], ".go") {
+		pkg, err = goloaderbuilder.BuildGoFiles(config)
+	} else {
+		pkg, err = goloaderbuilder.BuildGoFiles(config)
+	}
+
 	if err != nil {
 		return err
 	}
@@ -88,7 +98,6 @@ func build(config *goloaderbuilder.BuildConfig, exeFile string) error {
 			return err
 		}
 		unresolvedSymbols = goloader.UnresolvedSymbols(linker, symPtr)
-		fmt.Printf("unresovled symbols:%v", unresolvedSymbols)
 		depth = depth + 1
 	}
 

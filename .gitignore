@@ -32,3 +32,4 @@ examples/runner/runner
 #builder
 examples/builder/builder
 examples/builder/target
+examples/builder/tmp
