@@ -37,6 +37,7 @@ func main() {
 	var targetDir = flag.String("t", "./target", "build target dir")
 	var pkgPath = flag.String("p", "main", "package path")
 	var goBinaryPath = flag.String("g", "go", "go binary path")
+	var onlyBuild = flag.Bool("b", false, "only build objfile")
 
 	flag.Parse()
 
@@ -50,13 +51,13 @@ func main() {
 	config.Dynlink = *dynlink
 	config.PkgPath = *pkgPath
 	config.TargetDir = *targetDir
-	err := build(&config, *exeFile)
+	err := build(&config, *exeFile, *onlyBuild)
 	if err != nil {
 		fmt.Printf("build failed! error:%s\n", err)
 	}
 }
 
-func build(config *goloaderbuilder.BuildConfig, exeFile string) error {
+func build(config *goloaderbuilder.BuildConfig, exeFile string, onlyBuild bool) error {
 	if len(config.BuildPaths) == 0 {
 		return fmt.Errorf("empty buildPath!\n")
 	}
@@ -65,11 +66,14 @@ func build(config *goloaderbuilder.BuildConfig, exeFile string) error {
 	if strings.HasSuffix(config.BuildPaths[0], ".go") {
 		pkg, err = goloaderbuilder.BuildGoFiles(config)
 	} else {
-		pkg, err = goloaderbuilder.BuildGoFiles(config)
+		pkg, err = goloaderbuilder.BuildGoPackage(config)
 	}
 
 	if err != nil {
 		return err
+	}
+	if onlyBuild {
+		return nil
 	}
 	symPtr := make(map[string]uintptr)
 	err = goloader.RegSymbolWithPath(symPtr, exeFile)
