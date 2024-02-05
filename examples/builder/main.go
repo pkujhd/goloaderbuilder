@@ -97,7 +97,7 @@ func build(config *goloaderbuilder.BuildConfig, exeFile string, onlyBuild bool) 
 		if len(unresolvedSymbols) == 0 || depth > maxDepth {
 			break
 		}
-		err = buildDepPackage(linker, config, unresolvedSymbols, importPkgs)
+		err = buildDepPackage(linker, config, symPtr, unresolvedSymbols, importPkgs)
 		if err != nil {
 			return err
 		}
@@ -131,7 +131,7 @@ func searilzeLinker(config *goloaderbuilder.BuildConfig, linker *goloader.Linker
 	return nil
 }
 
-func buildDepPackage(linker *goloader.Linker, config *goloaderbuilder.BuildConfig, unresolvedSymbols []string, importPkgs map[string]bool) error {
+func buildDepPackage(linker *goloader.Linker, config *goloaderbuilder.BuildConfig, symPtr map[string]uintptr, unresolvedSymbols []string, importPkgs map[string]bool) error {
 	for importPkg, dealed := range importPkgs {
 		if dealed == false {
 			symbolInPkg := false
@@ -148,7 +148,7 @@ func buildDepPackage(linker *goloader.Linker, config *goloaderbuilder.BuildConfi
 				if err != nil {
 					return err
 				}
-				err = linker.ReadDependPkg(conf.TargetPath, importPkg, unresolvedSymbols)
+				err = linker.ReadDependPkg(conf.TargetPath, importPkg, unresolvedSymbols, symPtr)
 				if err != nil {
 					return err
 				}
