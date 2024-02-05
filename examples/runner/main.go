@@ -4,27 +4,11 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
-	"runtime"
-	"sync"
 	"unsafe"
 
 	"github.com/pkujhd/goloader"
 )
-
-func init() {
-	symPtr := make(map[string]uintptr)
-	w := sync.WaitGroup{}
-	str := make([]string, 0)
-	goloader.RegTypes(symPtr, http.ListenAndServe, http.Dir("/"),
-		http.Handler(http.FileServer(http.Dir("/"))), http.FileServer, http.HandleFunc,
-		&http.Request{}, &http.Server{}, (&http.ServeMux{}).Handle)
-	goloader.RegTypes(symPtr, &w, w.Wait)
-	goloader.RegTypes(symPtr, fmt.Sprint, str)
-	goloader.RegTypes(symPtr, runtime.LockOSThread, runtime.Stack)
-
-}
 
 func main() {
 	var goloaderFile = flag.String("f", "", "go loader builder file.")
