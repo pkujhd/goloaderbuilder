@@ -7,4 +7,7 @@ require (
 	github.com/pkujhd/goloaderbuilder v0.0.0-20240116021854-8b753530ada5
 )
 
-replace github.com/pkujhd/goloaderbuilder => ../../
+replace (
+	github.com/pkujhd/goloader => ../../../goloader
+	github.com/pkujhd/goloaderbuilder => ../../
+)
