@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/pkujhd/goloader"
+	"github.com/pkujhd/goloader/obj"
 	"github.com/pkujhd/goloaderbuilder"
 )
 
@@ -86,9 +87,10 @@ func build(config *goloaderbuilder.BuildConfig, exeFile string, onlyBuild bool) 
 	}
 	unresolvedSymbols := goloader.UnresolvedSymbols(linker, symPtr)
 
-	importPkgs := make(map[string]bool)
-	for _, importPkg := range pkg.Imports {
-		importPkgs[importPkg] = false
+	files := make([]string, 0)
+	pkgPaths := make([]string, 0)
+	if err = buildDepPackage(&files, &pkgPaths, pkg.Imports, config); err != nil {
+		return err
 	}
 
 	maxDepth := 128
@@ -97,7 +99,7 @@ func build(config *goloaderbuilder.BuildConfig, exeFile string, onlyBuild bool) 
 		if len(unresolvedSymbols) == 0 || depth > maxDepth {
 			break
 		}
-		err = buildDepPackage(linker, config, symPtr, unresolvedSymbols, importPkgs)
+		err = linker.ReadDependPkgs(files, pkgPaths, unresolvedSymbols, symPtr)
 		if err != nil {
 			return err
 		}
@@ -122,6 +124,10 @@ func searilzeLinker(config *goloaderbuilder.BuildConfig, linker *goloader.Linker
 	if err != nil {
 		return err
 	}
+	//clear pkg.Syms, it's too big.
+	for _, pkg := range linker.Packages {
+		pkg.Syms = make(map[string]*obj.ObjSymbol, 0)
+	}
 	writer := io.Writer(f)
 	err = goloader.Serialize(linker, writer)
 	if err != nil {
@@ -131,16 +137,26 @@ func searilzeLinker(config *goloaderbuilder.BuildConfig, linker *goloader.Linker
 	return nil
 }
 
-func buildDepPackage(linker *goloader.Linker, config *goloaderbuilder.BuildConfig, symPtr map[string]uintptr, unresolvedSymbols []string, importPkgs map[string]bool) error {
-	for importPkg, dealed := range importPkgs {
-		if dealed == false {
-			symbolInPkg := false
-			for _, symbol := range unresolvedSymbols {
-				if strings.Contains(symbol, importPkg) {
-					symbolInPkg = true
-				}
+func buildDepPackage(files, pkgPaths *[]string, imports []string, config *goloaderbuilder.BuildConfig) error {
+	importPkgs := make(map[string]bool)
+	importPkgs["unsafe"] = true
+	addImport := func(importPkgs map[string]bool, imports []string) {
+		for _, importPkg := range imports {
+			if importPkg == "C" {
+				importPkg = "runtime/cgo"
 			}
-			if symbolInPkg {
+			if _, ok := importPkgs[importPkg]; !ok {
+				importPkgs[importPkg] = false
+			}
+		}
+	}
+	addImport(importPkgs, imports)
+
+	fileLen := 0
+	for fileLen != len(*files) || fileLen == 0 {
+		fileLen = len(*files)
+		for importPkg, dealed := range importPkgs {
+			if dealed == false {
 				conf := *config
 				conf.PkgPath = importPkg
 				conf.BuildPaths = []string{importPkg}
@@ -148,15 +164,10 @@ func buildDepPackage(linker *goloader.Linker, config *goloaderbuilder.BuildConfi
 				if err != nil {
 					return err
 				}
-				err = linker.ReadDependPkg(conf.TargetPath, importPkg, unresolvedSymbols, symPtr)
-				if err != nil {
-					return err
-				}
-				for _, importPkg := range pkg.Imports {
-					if _, ok := importPkgs[importPkg]; !ok {
-						importPkgs[importPkg] = false
-					}
-				}
+				*files = append(*files, conf.TargetPath)
+				*pkgPaths = append(*pkgPaths, importPkg)
+				importPkgs[importPkg] = true
+				addImport(importPkgs, pkg.Imports)
 			}
 		}
 	}
