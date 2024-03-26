@@ -30,7 +30,7 @@ func main() {
 	var files stringArrFlags
 	flag.Var(&files, "f", "load go object file or go package")
 	var buildEnvs stringArrFlags
-	flag.Var(&buildEnvs, "env", "load go object file or go package")
+	flag.Var(&buildEnvs, "env", "build environment")
 	var debug = flag.Bool("d", false, "debug log enable")
 	var dynlink = flag.Bool("l", false, "dynlink enable")
 	var keepWorkDir = flag.Bool("k", false, "keep work dir enable")
@@ -93,7 +93,7 @@ func build(config *goloaderbuilder.BuildConfig, exeFile string, onlyBuild bool) 
 		return err
 	}
 
-	maxDepth := 128
+	maxDepth := 8
 	depth := 1
 	for {
 		if len(unresolvedSymbols) == 0 || depth > maxDepth {
