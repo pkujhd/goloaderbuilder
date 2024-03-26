@@ -31,6 +31,12 @@ func main() {
 
 	symPtr := make(map[string]uintptr)
 	err = goloader.RegSymbol(symPtr)
+
+	if err != nil {
+		fmt.Printf("goloader RegTypes failed!error:%s\n", err)
+		return
+	}
+	err = linker.RegisterCgoSymbols(symPtr)
 	if err != nil {
 		fmt.Printf("goloader RegTypes failed!error:%s\n", err)
 		return
