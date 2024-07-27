@@ -138,6 +138,9 @@ func searilzeLinker(config *goloaderbuilder.BuildConfig, linker *goloader.Linker
 }
 
 func buildDepPackage(files, pkgPaths *[]string, imports []string, config *goloaderbuilder.BuildConfig) error {
+	if len(imports) == 0 {
+		return nil
+	}
 	importPkgs := make(map[string]bool)
 	importPkgs["unsafe"] = true
 	addImport := func(importPkgs map[string]bool, imports []string) {
