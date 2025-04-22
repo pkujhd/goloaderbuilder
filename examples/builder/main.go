@@ -35,7 +35,7 @@ func main() {
 	flag.Var(&files, "f", "load go object file or go package")
 	var buildEnvs stringArrFlags
 	flag.Var(&buildEnvs, "env", "build environment")
-	var debug = flag.Bool("d", false, "debug log enable")
+	var debug = flag.Bool("d", true, "debug log enable")
 	var dynlink = flag.Bool("l", true, "dynlink enable")
 	var keepWorkDir = flag.Bool("k", false, "keep work dir enable")
 	var workDir = flag.String("w", "./tmp", "build work dir")
@@ -98,6 +98,7 @@ func build(config *goloaderbuilder.BuildConfig, exeFile string, onlyBuild bool) 
 
 	files := make([]string, 0)
 	pkgPaths := make([]string, 0)
+	pkg.Imports = append(pkg.Imports, "runtime")
 	if err = buildDepPackage(&files, &pkgPaths, pkg.Imports, config); err != nil {
 		return err
 	}
