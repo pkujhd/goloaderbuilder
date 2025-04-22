@@ -1,11 +1,13 @@
 package main
 
 import (
+	"cmd/objfile/sys"
 	"flag"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 
@@ -34,7 +36,7 @@ func main() {
 	var buildEnvs stringArrFlags
 	flag.Var(&buildEnvs, "env", "build environment")
 	var debug = flag.Bool("d", false, "debug log enable")
-	var dynlink = flag.Bool("l", false, "dynlink enable")
+	var dynlink = flag.Bool("l", true, "dynlink enable")
 	var keepWorkDir = flag.Bool("k", false, "keep work dir enable")
 	var workDir = flag.String("w", "./tmp", "build work dir")
 	var targetDir = flag.String("t", "./target", "build target dir")
@@ -54,6 +56,11 @@ func main() {
 	config.Dynlink = *dynlink
 	config.PkgPath = *pkgPath
 	config.TargetDir = *targetDir
+
+	if runtime.GOARCH == sys.ArchAMD64.Name && runtime.GOOS == "linux" {
+		config.Dynlink = false
+	}
+
 	err := build(&config, *exeFile, *onlyBuild)
 	if err != nil {
 		fmt.Printf("build failed! error:%s\n", err)
