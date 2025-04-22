@@ -155,23 +155,21 @@ func buildDepPackage(files, pkgPaths *[]string, imports []string, config *goload
 	}
 	addImport(importPkgs, imports)
 
-	fileLen := 0
-	for fileLen != len(*files) || fileLen == 0 {
-		fileLen = len(*files)
-		for importPkg, dealed := range importPkgs {
-			if dealed == false {
-				conf := *config
-				conf.PkgPath = importPkg
-				conf.BuildPaths = []string{importPkg}
-				pkg, err := goloaderbuilder.BuildDepPackage(&conf)
-				if err != nil {
-					return err
-				}
-				*files = append(*files, conf.TargetPath)
-				*pkgPaths = append(*pkgPaths, importPkg)
-				importPkgs[importPkg] = true
-				addImport(importPkgs, pkg.Imports)
+LOOP:
+	for importPkg, dealed := range importPkgs {
+		if dealed == false {
+			conf := *config
+			conf.PkgPath = importPkg
+			conf.BuildPaths = []string{importPkg}
+			pkg, err := goloaderbuilder.BuildDepPackage(&conf)
+			if err != nil {
+				return err
 			}
+			*files = append(*files, conf.TargetPath)
+			*pkgPaths = append(*pkgPaths, importPkg)
+			importPkgs[importPkg] = true
+			addImport(importPkgs, pkg.Imports)
+			goto LOOP
 		}
 	}
 	return nil
