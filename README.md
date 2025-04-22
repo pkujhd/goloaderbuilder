@@ -19,7 +19,7 @@ cd examples/builder
 ../runner/runner -f target/inter.goloader -r inter.main
 ```
 
-### build go files for goloader
+### build go package for goloader
 ```
 cd examples/builder
 ./builder -e ../runner/runner -f $GOPATH/src/github.com/pkujhd/goloader/examples/inter 
