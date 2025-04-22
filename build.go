@@ -52,9 +52,6 @@ func mergeBuildFlags(extraBuildFlags []string, dynlink bool) []string {
 }
 
 func execBuild(config *BuildConfig, wg *sync.WaitGroup) {
-	if !config.KeepWorkDir {
-		defer os.RemoveAll(config.WorkDir)
-	}
 
 	var args = []string{"build"}
 	args = append(args, mergeBuildFlags(config.ExtraBuildFlags, config.Dynlink)...)
@@ -80,7 +77,10 @@ func execBuild(config *BuildConfig, wg *sync.WaitGroup) {
 		fmt.Println(stdoutBuffer)
 	}
 
-	wg.Done()
+	if wg != nil {
+		wg.Done()
+	}
+
 }
 
 func initConfig(config *BuildConfig, absPathEnable bool) error {
@@ -123,21 +123,32 @@ func initConfig(config *BuildConfig, absPathEnable bool) error {
 	config.TargetDir = path
 
 	path = strings.TrimSuffix(config.BuildPaths[0], ".go")
+	goPath := os.Getenv("GOPATH")
 	if path == config.BuildPaths[0] {
-		path = config.TargetDir + "/" + config.PkgPath
+		if strings.HasPrefix(path, goPath) {
+			path = strings.TrimPrefix(path, filepath.Join(goPath, "src", ""))
+			path = filepath.Join(config.TargetDir, path, "")
+		} else {
+			path = filepath.Join(config.TargetDir, config.PkgPath)
+		}
 	} else {
-		path = config.TargetDir + "/" + filepath.Base(path)
+		if strings.HasPrefix(path, goPath) {
+			path = strings.TrimPrefix(path, filepath.Join(goPath, "src", ""))
+			path = filepath.Join(config.TargetDir, filepath.Dir(path))
+		} else {
+			path = filepath.Join(config.TargetDir, filepath.Base(path))
+		}
 	}
+	config.TargetPath = path
 	path, err = filepath.Abs(path)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute path at %s: %w", path, err)
 	}
-	config.TargetPath = path
 	err = os.MkdirAll(config.TargetPath, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("could not create new temp dir at %s: %w", config.TargetPath, err)
 	}
-	config.TargetPath = config.TargetPath + "/" + filepath.Base(config.TargetPath) + ".a"
+	config.TargetPath = filepath.Join(config.TargetPath, filepath.Base(config.TargetPath)) + ".a"
 	return nil
 }
 
@@ -168,7 +179,11 @@ func getPkg(goBinary, absPath, workDir string) (*Package, error) {
 	return pkg, err
 }
 
-func BuildGoFiles(config *BuildConfig, wg *sync.WaitGroup) (*Package, error) {
+func BuildGoFiles(config *BuildConfig) (*Package, error) {
+	if !config.KeepWorkDir {
+		defer os.RemoveAll(config.WorkDir)
+	}
+
 	if err := initConfig(config, true); err != nil {
 		return nil, err
 	}
@@ -176,15 +191,13 @@ func BuildGoFiles(config *BuildConfig, wg *sync.WaitGroup) (*Package, error) {
 	absPath := config.BuildPaths[0]
 	workDir := filepath.Dir(absPath)
 	config.WorkDir = workDir
-	config.KeepWorkDir = true
 
 	pkg, err := getPkg(config.GoBinary, absPath, workDir)
 	if err != nil {
 		return nil, err
 	}
 
-	wg.Add(1)
-	go execBuild(config, wg)
+	execBuild(config, nil)
 	return pkg, nil
 }
 
@@ -206,7 +219,10 @@ func BuildDepPackage(config *BuildConfig, wg *sync.WaitGroup) (*Package, error) 
 	return pkg, nil
 }
 
-func BuildGoPackage(config *BuildConfig, wg *sync.WaitGroup) (*Package, error) {
+func BuildGoPackage(config *BuildConfig) (*Package, error) {
+	if !config.KeepWorkDir {
+		defer os.RemoveAll(config.WorkDir)
+	}
 	if err := initConfig(config, true); err != nil {
 		return nil, err
 	}
@@ -227,7 +243,6 @@ func BuildGoPackage(config *BuildConfig, wg *sync.WaitGroup) (*Package, error) {
 		return nil, err
 	}
 
-	wg.Add(1)
-	go execBuild(config, wg)
+	execBuild(config, nil)
 	return pkg, nil
 }

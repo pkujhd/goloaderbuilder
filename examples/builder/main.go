@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -66,13 +67,9 @@ func build(config *goloaderbuilder.BuildConfig, exeFile string, onlyBuild bool) 
 	var pkg *goloaderbuilder.Package
 	var err error
 	if strings.HasSuffix(config.BuildPaths[0], ".go") {
-		wg := &sync.WaitGroup{}
-		pkg, err = goloaderbuilder.BuildGoFiles(config, wg)
-		wg.Wait()
+		pkg, err = goloaderbuilder.BuildGoFiles(config)
 	} else {
-		wg := &sync.WaitGroup{}
-		pkg, err = goloaderbuilder.BuildGoPackage(config, wg)
-		wg.Wait()
+		pkg, err = goloaderbuilder.BuildGoPackage(config)
 	}
 
 	if err != nil {
@@ -139,7 +136,7 @@ func build(config *goloaderbuilder.BuildConfig, exeFile string, onlyBuild bool) 
 }
 
 func searilzeLinker(config *goloaderbuilder.BuildConfig, linker *goloader.Linker) error {
-	serializeFilePath := config.TargetDir + "/" + config.PkgPath + ".goloader"
+	serializeFilePath := filepath.Join(config.TargetDir, config.PkgPath) + ".goloader"
 	f, err := os.Create(serializeFilePath)
 	if err != nil {
 		return err
