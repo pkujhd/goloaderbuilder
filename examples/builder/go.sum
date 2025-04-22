@@ -1,13 +1,2 @@
-github.com/pkujhd/goloader v0.0.19 h1:RY5Cm0KFtxuYKTlOuD9ZDS2A081eWAboWP0ubXPE55U=
-github.com/pkujhd/goloader v0.0.19/go.mod h1:NBZlcY477N1nyopY6p3YcoiL5dtXHzj/F12F8b3ui/o=
-golang.org/x/arch v0.9.0 h1:ub9TgUInamJ8mrZIGlBG6/4TqWeMszd4N8lNorbrr6k=
-golang.org/x/arch v0.9.0/go.mod h1:FEVrYAQjsQXMVJ1nsMoVVXPZg6p2JE2mx8psSWTDQys=
-golang.org/x/arch v0.10.0 h1:S3huipmSclq3PJMNe76NGwkBR504WFkQ5dhzWzP8ZW8=
-golang.org/x/arch v0.10.0/go.mod h1:FEVrYAQjsQXMVJ1nsMoVVXPZg6p2JE2mx8psSWTDQys=
-golang.org/x/arch v0.11.0 h1:KXV8WWKCXm6tRpLirl2szsO5j/oOODwZf4hATmGVNs4=
-golang.org/x/arch v0.11.0/go.mod h1:FEVrYAQjsQXMVJ1nsMoVVXPZg6p2JE2mx8psSWTDQys=
-golang.org/x/arch v0.12.0 h1:UsYJhbzPYGsT0HbEdmYcqtCv8UNGvnaL561NnIUvaKg=
-golang.org/x/arch v0.12.0/go.mod h1:FEVrYAQjsQXMVJ1nsMoVVXPZg6p2JE2mx8psSWTDQys=
-golang.org/x/arch v0.14.0 h1:z9JUEZWr8x4rR0OU6c4/4t6E6jOZ8/QBS2bBYBm4tx4=
-golang.org/x/arch v0.14.0/go.mod h1:FEVrYAQjsQXMVJ1nsMoVVXPZg6p2JE2mx8psSWTDQys=
-rsc.io/pdf v0.1.1/go.mod h1:n8OzWcQ6Sp37PL01nO98y4iUCRdTGarVfzxY20ICaU4=
+github.com/pkujhd/goloader v0.0.0-20250422025225-6d12c0e3c904 h1:rox8v7dhi40sCLv8C9YnAKs0RSF+RJ48eURIi5EMI4M=
+github.com/pkujhd/goloader v0.0.0-20250422025225-6d12c0e3c904/go.mod h1:NBZlcY477N1nyopY6p3YcoiL5dtXHzj/F12F8b3ui/o=
