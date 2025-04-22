@@ -25,3 +25,7 @@ cd examples/builder
 ./builder -e ../runner/runner -f $GOPATH/src/github.com/pkujhd/goloader/examples/inter 
 ../runner/runner -f target/main.goloader -r github.com/pkujhd/goloader/examples/inter.main
 ```
+
+## Warning
+
+use builder to build go package which package name is not main
