@@ -1,7 +1,7 @@
 
 # Goloader Builder
 
-build go files or go packages for goloader
+build go files or go packages for goloader and solve dependency
 
 ## Examples
 build examples
