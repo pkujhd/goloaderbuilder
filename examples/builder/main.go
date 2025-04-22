@@ -116,6 +116,21 @@ func build(config *goloaderbuilder.BuildConfig, exeFile string, onlyBuild bool) 
 		return fmt.Errorf("unresovled symbols:%v", unresolvedSymbols)
 	}
 
+	unimplementedTypes := goloader.CheckUnimplementedInterface(linker, symPtr)
+	if unimplementedTypes != nil {
+		unresolvedSymbols = make([]string, len(unimplementedTypes))
+		k := 0
+		for name := range unimplementedTypes {
+			unresolvedSymbols[k] = name
+			k++
+			delete(symPtr, name)
+		}
+		err = linker.ReadDependPkgs(files, pkgPaths, unresolvedSymbols, symPtr)
+		if err != nil {
+			return err
+		}
+	}
+
 	if err = searilzeLinker(config, linker); err != nil {
 		return err
 	}
