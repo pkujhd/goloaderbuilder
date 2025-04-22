@@ -122,7 +122,7 @@ func initConfig(config *BuildConfig, absPathEnable bool) error {
 	}
 	config.TargetDir = path
 
-	path = strings.TrimRight(config.BuildPaths[0], ".go")
+	path = strings.TrimSuffix(config.BuildPaths[0], ".go")
 	if path == config.BuildPaths[0] {
 		path = config.TargetDir + "/" + config.PkgPath
 	} else {
