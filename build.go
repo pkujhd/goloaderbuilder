@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 type BuildConfig struct {
@@ -50,7 +51,7 @@ func mergeBuildFlags(extraBuildFlags []string, dynlink bool) []string {
 	return buildFlags
 }
 
-func execBuild(config *BuildConfig) error {
+func execBuild(config *BuildConfig, wg *sync.WaitGroup) {
 	if !config.KeepWorkDir {
 		defer os.RemoveAll(config.WorkDir)
 	}
@@ -62,7 +63,7 @@ func execBuild(config *BuildConfig) error {
 
 	cmd := exec.Command(config.GoBinary, args...)
 	cmd.Dir = config.WorkDir
-	cmd.Env = append(os.Environ(), config.BuildEnv...)
+	cmd.Env = append(cmd.Env, config.BuildEnv...)
 
 	stdoutBuffer := &bytes.Buffer{}
 	stderrBuffer := &bytes.Buffer{}
@@ -71,7 +72,7 @@ func execBuild(config *BuildConfig) error {
 	cmd.Stderr = stderrBuffer
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("could not build with cmd:\n'%s': %w.\nstdout:\n%s\nstderr:\n%s",
+		fmt.Println("could not build with cmd:\n'%s': %w.\nstdout:\n%s\nstderr:\n%s",
 			strings.Join(cmd.Args, " "), err, stdoutBuffer, stderrBuffer)
 	}
 
@@ -79,7 +80,7 @@ func execBuild(config *BuildConfig) error {
 		fmt.Println(stdoutBuffer)
 	}
 
-	return nil
+	wg.Done()
 }
 
 func initConfig(config *BuildConfig, absPathEnable bool) error {
@@ -167,7 +168,7 @@ func getPkg(goBinary, absPath, workDir string) (*Package, error) {
 	return pkg, err
 }
 
-func BuildGoFiles(config *BuildConfig) (*Package, error) {
+func BuildGoFiles(config *BuildConfig, wg *sync.WaitGroup) (*Package, error) {
 	if err := initConfig(config, true); err != nil {
 		return nil, err
 	}
@@ -182,10 +183,12 @@ func BuildGoFiles(config *BuildConfig) (*Package, error) {
 		return nil, err
 	}
 
-	return pkg, execBuild(config)
+	wg.Add(1)
+	go execBuild(config, wg)
+	return pkg, nil
 }
 
-func BuildDepPackage(config *BuildConfig) (*Package, error) {
+func BuildDepPackage(config *BuildConfig, wg *sync.WaitGroup) (*Package, error) {
 	if err := initConfig(config, false); err != nil {
 		return nil, err
 	}
@@ -198,10 +201,12 @@ func BuildDepPackage(config *BuildConfig) (*Package, error) {
 		return nil, err
 	}
 
-	return pkg, execBuild(config)
+	wg.Add(1)
+	go execBuild(config, wg)
+	return pkg, nil
 }
 
-func BuildGoPackage(config *BuildConfig) (*Package, error) {
+func BuildGoPackage(config *BuildConfig, wg *sync.WaitGroup) (*Package, error) {
 	if err := initConfig(config, true); err != nil {
 		return nil, err
 	}
@@ -222,5 +227,7 @@ func BuildGoPackage(config *BuildConfig) (*Package, error) {
 		return nil, err
 	}
 
-	return pkg, execBuild(config)
+	wg.Add(1)
+	go execBuild(config, wg)
+	return pkg, nil
 }

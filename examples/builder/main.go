@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/pkujhd/goloader"
 	"github.com/pkujhd/goloader/obj"
@@ -65,9 +66,13 @@ func build(config *goloaderbuilder.BuildConfig, exeFile string, onlyBuild bool) 
 	var pkg *goloaderbuilder.Package
 	var err error
 	if strings.HasSuffix(config.BuildPaths[0], ".go") {
-		pkg, err = goloaderbuilder.BuildGoFiles(config)
+		wg := &sync.WaitGroup{}
+		pkg, err = goloaderbuilder.BuildGoFiles(config, wg)
+		wg.Wait()
 	} else {
-		pkg, err = goloaderbuilder.BuildGoPackage(config)
+		wg := &sync.WaitGroup{}
+		pkg, err = goloaderbuilder.BuildGoPackage(config, wg)
+		wg.Wait()
 	}
 
 	if err != nil {
@@ -155,13 +160,15 @@ func buildDepPackage(files, pkgPaths *[]string, imports []string, config *goload
 	}
 	addImport(importPkgs, imports)
 
+	wg := &sync.WaitGroup{}
+
 LOOP:
 	for importPkg, dealed := range importPkgs {
 		if dealed == false {
 			conf := *config
 			conf.PkgPath = importPkg
 			conf.BuildPaths = []string{importPkg}
-			pkg, err := goloaderbuilder.BuildDepPackage(&conf)
+			pkg, err := goloaderbuilder.BuildDepPackage(&conf, wg)
 			if err != nil {
 				return err
 			}
@@ -172,5 +179,6 @@ LOOP:
 			goto LOOP
 		}
 	}
+	wg.Wait()
 	return nil
 }
