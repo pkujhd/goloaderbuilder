@@ -58,6 +58,18 @@ func execBuild(config *BuildConfig, wg *sync.WaitGroup) {
 	args = append(args, "-o", config.TargetPath)
 	args = append(args, config.BuildPaths...)
 
+	if len(config.BuildPaths) == 1 {
+		goPath := os.Getenv("GOPATH")
+		if !strings.HasPrefix(config.BuildPaths[0], goPath) {
+			if _, err := os.Stat(config.TargetPath); err == nil {
+				if wg != nil {
+					wg.Done()
+				}
+				return
+			}
+		}
+	}
+
 	cmd := exec.Command(config.GoBinary, args...)
 	cmd.Dir = config.WorkDir
 	cmd.Env = append(cmd.Env, config.BuildEnv...)
