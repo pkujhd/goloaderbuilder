@@ -12,7 +12,6 @@ import (
 	"sync"
 
 	"github.com/pkujhd/goloader"
-	"github.com/pkujhd/goloader/obj"
 	"github.com/pkujhd/goloaderbuilder"
 )
 
@@ -96,43 +95,22 @@ func build(config *goloaderbuilder.BuildConfig, exeFile string, onlyBuild bool) 
 	}
 	unresolvedSymbols := goloader.UnresolvedSymbols(linker, symPtr)
 
-	files := make([]string, 0)
-	pkgPaths := make([]string, 0)
-	pkg.Imports = append(pkg.Imports, "runtime")
-	if err = buildDepPackage(&files, &pkgPaths, pkg.Imports, config); err != nil {
-		return err
-	}
-
-	maxDepth := 8
-	depth := 1
-	for {
-		if len(unresolvedSymbols) == 0 || depth > maxDepth {
-			break
+	if len(unresolvedSymbols) > 0 {
+		files := make([]string, 0)
+		pkgPaths := make([]string, 0)
+		pkg.Imports = append(pkg.Imports, "runtime")
+		if err = buildDepPackage(&files, &pkgPaths, pkg.Imports, config); err != nil {
+			return err
 		}
+
 		err = linker.ReadDependPkgs(files, pkgPaths, unresolvedSymbols, symPtr)
 		if err != nil {
 			return err
 		}
 		unresolvedSymbols = goloader.UnresolvedSymbols(linker, symPtr)
-		depth = depth + 1
-	}
 
-	if len(unresolvedSymbols) > 0 {
-		return fmt.Errorf("unresovled symbols:%v", unresolvedSymbols)
-	}
-
-	unimplementedTypes := goloader.CheckUnimplementedInterface(linker, symPtr)
-	if unimplementedTypes != nil {
-		unresolvedSymbols = make([]string, len(unimplementedTypes))
-		k := 0
-		for name := range unimplementedTypes {
-			unresolvedSymbols[k] = name
-			k++
-			delete(symPtr, name)
-		}
-		err = linker.ReadDependPkgs(files, pkgPaths, unresolvedSymbols, symPtr)
-		if err != nil {
-			return err
+		if len(unresolvedSymbols) > 0 {
+			return fmt.Errorf("unresovled symbols:%v", unresolvedSymbols)
 		}
 	}
 
@@ -148,10 +126,6 @@ func searilzeLinker(config *goloaderbuilder.BuildConfig, linker *goloader.Linker
 	f, err := os.Create(serializeFilePath)
 	if err != nil {
 		return err
-	}
-	//clear pkg.Syms, it's too big.
-	for _, pkg := range linker.Packages {
-		pkg.Syms = make(map[string]*obj.ObjSymbol, 0)
 	}
 	writer := io.Writer(f)
 	err = goloader.Serialize(linker, writer)
