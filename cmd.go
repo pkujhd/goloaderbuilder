@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func GoModDownload(goCmd, workDir string, args ...string) error {
@@ -50,7 +51,27 @@ func GoListStd(goCmd string) map[string]struct{} {
 	return stdLibPkgs
 }
 
-func GoList(goCmd, absPath, workDir string) (*Package, error) {
+func GoList(goCmd, absPath, workDir, targetPath string) (*Package, error) {
+	goPath := os.Getenv("GOPATH")
+	targetPath = strings.Trim(targetPath, ".a") + ".json"
+	if !strings.HasPrefix(absPath, goPath) {
+		if _, err := os.Stat(targetPath); err == nil {
+			f, err := os.Open(targetPath)
+			if err != nil {
+				return nil, err
+			}
+			pkg := Package{}
+			err = json.NewDecoder(io.Reader(f)).Decode(&pkg)
+			if err != nil {
+				return nil, fmt.Errorf("failed to decode response of 'go list -json %s': %w\n", absPath, err)
+			}
+			if len(pkg.GoFiles)+len(pkg.CgoFiles) == 0 {
+				return nil, fmt.Errorf("no Go files found in directory %s", absPath)
+			}
+			return &pkg, nil
+		}
+	}
+
 	golistCmd := exec.Command(goCmd, "list", "-json", absPath)
 	golistCmd.Dir = workDir
 	output, err := golistCmd.StdoutPipe()
@@ -76,6 +97,18 @@ func GoList(goCmd, absPath, workDir string) (*Package, error) {
 
 	if len(pkg.GoFiles)+len(pkg.CgoFiles) == 0 {
 		return nil, fmt.Errorf("no Go files found in directory %s", absPath)
+	}
+
+	f, err := os.Create(targetPath)
+	defer f.Close()
+	if err != nil {
+		return nil, err
+	}
+	writer := io.Writer(f)
+	encoder := json.NewEncoder(writer)
+	err = encoder.Encode(pkg)
+	if err != nil {
+		return nil, err
 	}
 	return &pkg, nil
 }

@@ -164,8 +164,8 @@ func initConfig(config *BuildConfig, absPathEnable bool) error {
 	return nil
 }
 
-func getPkg(goBinary, absPath, workDir string) (*Package, error) {
-	pkg, err := GoList(goBinary, absPath, workDir)
+func getPkg(goBinary, absPath, workDir, targetPath string) (*Package, error) {
+	pkg, err := GoList(goBinary, absPath, workDir, targetPath)
 
 	if err != nil {
 		return nil, err
@@ -180,7 +180,7 @@ func getPkg(goBinary, absPath, workDir string) (*Package, error) {
 		if err != nil {
 			return nil, err
 		}
-		pkg, err = GoList(goBinary, absPath, "")
+		pkg, err = GoList(goBinary, absPath, "", targetPath)
 		if err != nil {
 			return nil, err
 		}
@@ -204,7 +204,7 @@ func BuildGoFiles(config *BuildConfig) (*Package, error) {
 	workDir := filepath.Dir(absPath)
 	config.WorkDir = workDir
 
-	pkg, err := getPkg(config.GoBinary, absPath, workDir)
+	pkg, err := getPkg(config.GoBinary, absPath, workDir, config.TargetPath)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +221,7 @@ func BuildDepPackage(config *BuildConfig, wg *sync.WaitGroup) (*Package, error) 
 		return nil, fmt.Errorf("invalid source package path")
 	}
 
-	pkg, err := getPkg(config.GoBinary, config.BuildPaths[0], config.WorkDir)
+	pkg, err := getPkg(config.GoBinary, config.BuildPaths[0], config.WorkDir, config.TargetPath)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +250,7 @@ func BuildGoPackage(config *BuildConfig) (*Package, error) {
 		return nil, fmt.Errorf("path at %s is not a directory", absPath)
 	}
 
-	pkg, err := getPkg(config.GoBinary, absPath, config.WorkDir)
+	pkg, err := getPkg(config.GoBinary, absPath, config.WorkDir, config.TargetPath)
 	if err != nil {
 		return nil, err
 	}
