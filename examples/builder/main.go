@@ -103,7 +103,7 @@ func build(config *goloaderbuilder.BuildConfig, exeFile string, onlyBuild bool) 
 			return err
 		}
 
-		err = linker.ReadDependPkgs(files, pkgPaths, unresolvedSymbols, symPtr)
+		err = goloader.ReadDependPackages(linker, files, pkgPaths, unresolvedSymbols, symPtr)
 		if err != nil {
 			return err
 		}
@@ -114,14 +114,14 @@ func build(config *goloaderbuilder.BuildConfig, exeFile string, onlyBuild bool) 
 		}
 	}
 
-	if err = searilzeLinker(config, linker); err != nil {
+	if err = serializeLinker(config, linker); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func searilzeLinker(config *goloaderbuilder.BuildConfig, linker *goloader.Linker) error {
+func serializeLinker(config *goloaderbuilder.BuildConfig, linker *goloader.Linker) error {
 	serializeFilePath := filepath.Join(config.TargetDir, config.PkgPath) + ".goloader"
 	f, err := os.Create(serializeFilePath)
 	if err != nil {
