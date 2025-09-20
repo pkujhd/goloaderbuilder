@@ -1,2 +1,3 @@
-github.com/pkujhd/goloader v0.0.0-20250728085506-4d285bc3f850 h1:jJYAkDX7kBlHYD3C+41rI4mNSDLjJzRKdLjeifbVhRk=
-github.com/pkujhd/goloader v0.0.0-20250728085506-4d285bc3f850/go.mod h1:NBZlcY477N1nyopY6p3YcoiL5dtXHzj/F12F8b3ui/o=
+github.com/pkujhd/goloader v0.0.0-20250815060020-48449aaec8a2 h1:HQpD6zyBF8jyNB0Y2MMxBsvgJU7h+qCgTeiDO5GqnvI=
+github.com/pkujhd/goloader v0.0.0-20250815060020-48449aaec8a2/go.mod h1:NBZlcY477N1nyopY6p3YcoiL5dtXHzj/F12F8b3ui/o=
+github.com/pkujhd/goloaderbuilder v0.0.0-20250728085808-47f0b7578647/go.mod h1:xKzxTCDpYYpKHHWqMCpZdA/+8ClZDHXTLHoUOJ2LvWg=
