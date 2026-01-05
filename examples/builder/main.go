@@ -140,25 +140,25 @@ func buildDepPackage(files, pkgPaths *[]string, imports []string, config *goload
 	if len(imports) == 0 {
 		return nil
 	}
-	importPkgs := make(map[string]bool)
-	importPkgs["unsafe"] = true
-	addImport := func(importPkgs map[string]bool, imports []string) {
+	importPackages := make(map[string]bool)
+	importPackages["unsafe"] = true
+	addImport := func(importPackages map[string]bool, imports []string) {
 		for _, importPkg := range imports {
 			if importPkg == "C" {
 				importPkg = "runtime/cgo"
 			}
-			if _, ok := importPkgs[importPkg]; !ok {
-				importPkgs[importPkg] = false
+			if _, ok := importPackages[importPkg]; !ok {
+				importPackages[importPkg] = false
 			}
 		}
 	}
-	addImport(importPkgs, imports)
+	addImport(importPackages, imports)
 
 	wg := &sync.WaitGroup{}
 
 LOOP:
-	for importPkg, dealed := range importPkgs {
-		if dealed == false {
+	for importPkg, done := range importPackages {
+		if done == false {
 			conf := *config
 			conf.PkgPath = importPkg
 			conf.BuildPaths = []string{importPkg}
@@ -168,8 +168,8 @@ LOOP:
 			}
 			*files = append(*files, conf.TargetPath)
 			*pkgPaths = append(*pkgPaths, importPkg)
-			importPkgs[importPkg] = true
-			addImport(importPkgs, pkg.Imports)
+			importPackages[importPkg] = true
+			addImport(importPackages, pkg.Imports)
 			goto LOOP
 		}
 	}

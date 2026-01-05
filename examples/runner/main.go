@@ -52,7 +52,7 @@ func runMain(linker *goloader.Linker, symPtr map[string]uintptr, run string) err
 
 	runFuncPtr := codeModule.Syms[run]
 	if runFuncPtr == 0 {
-		return err
+		return fmt.Errorf("can not find run function:%s", run)
 	}
 	funcPtrContainer := (uintptr)(unsafe.Pointer(&runFuncPtr))
 	runFunc := *(*func())(unsafe.Pointer(&funcPtrContainer))
