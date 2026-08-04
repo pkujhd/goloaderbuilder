@@ -33,3 +33,7 @@ examples/runner/runner
 examples/builder/builder
 examples/builder/target
 examples/builder/tmp
+
+#claude
+.claude/*
+CLAUDE.md
